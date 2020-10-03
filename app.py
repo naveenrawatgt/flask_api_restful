@@ -42,8 +42,8 @@ class Device(Resource):
     @marshal_with(resource_fields)
     def get(self, id):
         result = DeviceModel.query.filter_by(id=id).first()
-        # if result:
-        #     abort(409, message="Device not found...")
+        if result is None:
+            abort(404, message="Device not found...")
         return result, 200
 
     @marshal_with(resource_fields)
@@ -51,7 +51,7 @@ class Device(Resource):
         args = item_for_put.parse_args()
         result = DeviceModel.query.filter_by(id=id).first()
         if result:
-            abort(409, message="Device not found...")
+            abort(404, message="Item already exists...")
         device = DeviceModel(id=id, model=args['model'], type=args['type'], mac_address=args['mac_address'])
         print(device)
         db.session.add(device)
@@ -62,7 +62,8 @@ class Device(Resource):
     def patch(self, id):
         args = item_for_patch.parse_args()
         device = DeviceModel.query.filter_by(id=id).first()
-        if device:
+        print("Inside Patch", device)
+        if device is None:
             abort(404, message="Device not found. Use put request.")
 
         if args['model']:
@@ -77,7 +78,14 @@ class Device(Resource):
         return {"message": "Patched successfully!"}
 
     def delete(self, id):
-        return {"message": "None"}, 204
+        item_to_delete = DeviceModel.query.filter_by(id=int(id)).first()
+        print("Inside delete",item_to_delete)
+        if item_to_delete is None:
+            abort(405, message = f"Item with id: {id} doesn't exist.")
+        db.session.delete(item_to_delete)
+        db.session.commit()
+        print("Deleted")
+        return {"message": f"Item with id: {id} successfully deleted."}, 204
 
 api.add_resource(Device, '/api/<int:id>')
 
@@ -86,4 +94,4 @@ def index():
     return "API to collect Device Info."
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
