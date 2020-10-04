@@ -7,6 +7,7 @@ api = Api(app)
 # SQlite Db config.
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///device.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config["FLASK_ENV"] = 'development'
 db = SQLAlchemy(app)
 
 class DeviceModel(db.Model):
